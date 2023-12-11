@@ -6,7 +6,6 @@
 
 __global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass) {
 	int i, j, k;
-	printf("%d\n", blockDim.x);
 	i = blockIdx.x * blockDim.x + threadIdx.x;
 	j = blockIdx.y * blockDim.y + threadIdx.y;
 	if (i < NUMENTITIES && j < NUMENTITIES) {

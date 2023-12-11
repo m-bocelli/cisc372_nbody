@@ -46,11 +46,19 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 //Parameters: None
 //Returns: None
 //Side Effect: Modifies the hPos and hVel arrays with the new positions and accelerations after 1 INTERVAL
-void compute(int *count) {	
+void compute() {	
 	dim3 threadsPerBlock(16,16);
 	dim3 numBlocks(ceil((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x), ceil((NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y));
-	printf("compute %d\n", *count++);
+	
+	cudaMalloc(&d_hVel, sizeof(vector3) * numObjects);
+	cudaMalloc(&d_hPos, sizeof(vector3) * numObjects);
+	cudaMemcpy(d_hVel, hVel, sizeof(vector3) * numObjects, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_hPos, hPos, sizeof(vector3) * numObjects, cudaMemcpyHostToDevice);
+
 	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
 	sum_columns<<<numBlocks,threadsPerBlock>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
+
+	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
+	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 }

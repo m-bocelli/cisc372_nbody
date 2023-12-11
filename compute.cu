@@ -50,7 +50,7 @@ void compute() {
 	dim3 threadsPerBlock(16,16);
 	dim3 numBlocks((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x, (NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y);
 
-	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass,);
+	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
 	sum_columns<<<numBlocks,threadsPerBlock>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
 }

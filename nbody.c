@@ -6,7 +6,6 @@
 #include "config.h"
 #include "planets.h"
 #include "compute.h"
-
 // represents the objects in the system.  Global variables
 vector3 *hVel, *d_hVel;
 vector3 *hPos, *d_hPos;
@@ -100,14 +99,16 @@ int main(int argc, char **argv)
 	randomFill(NUMPLANETS + 1, NUMASTEROIDS);
 	//now we have a system.
 	#ifdef DEBUG
-	printSystem(stdout);
+    FILE* handle;
+    handle = fopen("parallel.txt", "w+");
+	printSystem(handle);
 	#endif
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
 	}
 	clock_t t1=clock()-t0;
 #ifdef DEBUG
-	printSystem(stdout);
+	printSystem(handle);
 #endif
 	printf("This took a total time of %f seconds\n",(double)t1/CLOCKS_PER_SEC);
 

@@ -44,6 +44,15 @@ void compute(){
 			hPos[i][k]+=hVel[i][k]*INTERVAL;
 		}
 	}
+
+	/* for reduction
+	for (i=0;i<NUMENTITIES;i++) {
+		for (k=0;k<3;k++){ 
+			hVel[i][k]+=accel_sum[k]*INTERVAL;
+			hPos[i][k]+=hVel[i][k]*INTERVAL;
+		}
+	}
+	*/
 	free(accels);
 	free(values);
 }

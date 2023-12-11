@@ -28,7 +28,8 @@ void initDeviceMemory(int numObjects)
 {
 	cudaMalloc(&d_values, sizeof(vector3)*numObjects*numObjects);
 	cudaMalloc(&d_accels, sizeof(vector3*)*numObjects);
-	
+	cudaMalloc(&d_hVel, sizeof(vector3) * numObjects);
+	cudaMalloc(&d_hPos, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_mass, sizeof(double) * numObjects);
 }
 
@@ -145,7 +146,8 @@ int main(int argc, char **argv)
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
 	}
-	
+	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
+	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 
 	clock_t t1=clock()-t0;
 

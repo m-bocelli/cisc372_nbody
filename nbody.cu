@@ -12,7 +12,6 @@ vector3 *hPos, *d_hPos;
 double *mass, *d_mass;
 vector3** d_accels;
 vector3* d_values;
-int *count;
 
 //initHostMemory: Create storage for numObjects entities in our system
 //Parameters: numObjects: number of objects to allocate
@@ -32,7 +31,6 @@ void initDeviceMemory(int numObjects)
 	cudaMalloc(&d_hVel, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_hPos, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_mass, sizeof(double) * numObjects);
-	cudaMalloc(&count, sizeof(int));
 }
 
 void copyToDevice(int numObjects) {
@@ -137,14 +135,13 @@ int main(int argc, char **argv)
 	copyToDevice(NUMENTITIES);
 	
 	//now we have a system.
-	#ifdef DEBUG
+#ifdef DEBUG
     FILE* handle;
     handle = fopen("parallel.txt", "w+");
 	printSystem(handle);
-	#endif
-	int *hcount;
-	*hcount = 0;
-	init_accels<<<(NUMENTITIES + 256-1) / 256,256>>>(d_accels, d_values); // should launch a little over NUMENTITIES threads
+#endif
+
+	init_accels<<<ceil((NUMENTITIES + 256-1) / 256),256>>>(d_accels, d_values); // should launch a little over NUMENTITIES threads
 	cudaDeviceSynchronize();
 
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
@@ -152,13 +149,12 @@ int main(int argc, char **argv)
 	}
 	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
-	cudaMemcpy(hcount, count, sizeof(int), cudaMemcpyDeviceToHost);
 
 	clock_t t1=clock()-t0;
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	printSystem(handle);
-	#endif
+#endif
 
 	printf("This took a total time of %f seconds\n",(double)t1/CLOCKS_PER_SEC);
 

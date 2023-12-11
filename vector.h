@@ -7,6 +7,5 @@ extern vector3 *hVel, *d_hVel;
 extern vector3 *hPos, *d_hPos;
 extern vector3** d_accels;
 extern double *mass, *d_mass;
-extern int *count;
 
 #endif

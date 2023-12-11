@@ -29,7 +29,7 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 	int i = blockIdx.x;
 	int k = threadIdx.x;
 	vector3 accel_sum={0,0,0};
-	for (int j = 0; j < NUMENTITIES) {
+	for (int j = 0; j < NUMENTITIES; j++) {
 		accel_sum[k]+=d_accels[i][j][k];
 	}
 	d_hVel[i][k]+=accel_sum[k]*INTERVAL;

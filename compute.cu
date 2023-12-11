@@ -4,13 +4,13 @@
 #include "config.h"
 #include <stdio.h>
 
-__global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass) {
+__global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass, int *count) {
 	int i, j, k;
 	i = blockIdx.x * blockDim.x + threadIdx.x;
 	j = blockIdx.y * blockDim.y + threadIdx.y;
 	if (i < NUMENTITIES && j < NUMENTITIES) {
 		if (i == 3999 && j == 3999) {
-			printf("hit max");
+			count++;
 		}
 		if (i==j) {
 			FILL_VECTOR(d_accels[i][j],0,0,0);

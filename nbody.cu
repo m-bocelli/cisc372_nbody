@@ -26,8 +26,8 @@ void initHostMemory(int numObjects)
 
 void initDeviceMemory(int numObjects)
 {
-	cudaMalloc(&d_values, sizeof(vector3)*NUMENTITIES*NUMENTITIES);
-	cudaMalloc(&d_accels, sizeof(vector3*)*NUMENTITIES);
+	cudaMalloc(&d_values, sizeof(vector3)*numObjects*numObjects);
+	cudaMalloc(&d_accels, sizeof(vector3*)*numObjects);
 	cudaMalloc(&d_hVel, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_hPos, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_mass, sizeof(double) * numObjects);
@@ -126,7 +126,6 @@ int main(int argc, char **argv)
 	int t_now;
 	//srand(time(NULL));
 	srand(1234);
-
 	initHostMemory(NUMENTITIES);
 	initDeviceMemory(NUMENTITIES);
 	
@@ -145,13 +144,13 @@ int main(int argc, char **argv)
 	dim3 threadsPerBlock(16,16);
 	int numBlocks = (NUMENTITIES + threadsPerBlock.x - 1) / threadsPerBlock.x;
 
-	init_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_values);
+	init_accels<<<numBlocks,256>>>(d_accels, d_values);
 	cudaDeviceSynchronize();
 
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
 	}
-	
+
 	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 

@@ -30,7 +30,7 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 	i = blockIdx.x * blockDim.x + threadIdx.x;
 	j = blockIdx.y * blockDim.y + threadIdx.y;
 	if (i < NUMENTITIES && j < NUMENTITIES) {
-		vector3 accel_sum={0,0,0};
+		__shared__ vector3 accel_sum={0,0,0};
 		for (k=0;k<3;k++)
 			accel_sum[k]+=d_accels[i][j][k];
 		//compute the new velocity based on the acceleration and time interval

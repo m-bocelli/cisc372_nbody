@@ -1,1 +1,1 @@
-void compute();
+void compute(int *count);

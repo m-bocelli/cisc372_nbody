@@ -143,8 +143,7 @@ int main(int argc, char **argv)
 
 	init_accels<<<ceil((NUMENTITIES + 256-1) / 256),256>>>(d_accels, d_values); // should launch a little over NUMENTITIES threads
 	cudaDeviceSynchronize();
-	int *count;
-	*count = 0;
+	int *count = 0;
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute(&count);
 	}

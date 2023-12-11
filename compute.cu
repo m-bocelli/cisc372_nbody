@@ -26,14 +26,20 @@ __global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_ma
 
 __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos) {
 	//sum up the rows of our matrix to get effect on each entity, then update velocity and position.
-	int i = blockIdx.x;
-	int k = threadIdx.x;
-	vector3 accel_sum={0,0,0};
-	for (int j = 0; j < NUMENTITIES; j++) {
-		accel_sum[k]+=d_accels[i][j][k];
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < NUMENTITIES) {
+		vector3 accel_sum={0,0,0};
+		for (j=0;j<NUMENTITIES;j++){
+			for (k=0;k<3;k++)
+				accel_sum[k]+=d_accels[i][j][k];
+		}
+		//compute the new velocity based on the acceleration and time interval
+		//compute the new position based on the velocity and time interval
+		for (k=0;k<3;k++){
+			d_hVel[i][k]+=accel_sum[k]*INTERVAL;
+			d_hPos[i][k]+=d_hVel[i][k]*INTERVAL;
+		}
 	}
-	d_hVel[i][k]+=accel_sum[k]*INTERVAL;
-	d_hPos[i][k]+=d_hVel[i][k]*INTERVAL;
 }
 
 //compute: Updates the positions and locations of the objects in the system based on gravity.
@@ -45,6 +51,6 @@ void compute() {
 	dim3 numBlocks(ceil((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x), ceil((NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y));
 	
 	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
-	sum_columns<<<NUMENTITIES,3>>>(d_accels, d_hVel, d_hPos);
+	sum_columns<<<ceil((NUMENTITIES + 256-1) / 256),256>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
 }

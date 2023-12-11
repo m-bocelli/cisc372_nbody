@@ -27,6 +27,7 @@ __global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_ma
 __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos) {
 	//sum up the rows of our matrix to get effect on each entity, then update velocity and position.
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int j, k;
 	if (i < NUMENTITIES) {
 		vector3 accel_sum={0,0,0};
 		for (j=0;j<NUMENTITIES;j++){

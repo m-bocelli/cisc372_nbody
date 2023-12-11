@@ -12,7 +12,7 @@ vector3 *hPos, *d_hPos;
 double *mass, *d_mass;
 vector3** d_accels;
 vector3* d_values;
-int count;
+int *count;
 
 //initHostMemory: Create storage for numObjects entities in our system
 //Parameters: numObjects: number of objects to allocate
@@ -142,7 +142,8 @@ int main(int argc, char **argv)
     handle = fopen("parallel.txt", "w+");
 	printSystem(handle);
 	#endif
-	int hcount;
+	int *hcount;
+	*hcount = 0;
 	init_accels<<<(NUMENTITIES + 256-1) / 256,256>>>(d_accels, d_values); // should launch a little over NUMENTITIES threads
 	cudaDeviceSynchronize();
 

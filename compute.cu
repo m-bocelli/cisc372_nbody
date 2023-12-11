@@ -10,7 +10,7 @@ __global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_ma
 	j = blockIdx.y * blockDim.y + threadIdx.y;
 	if (i < NUMENTITIES && j < NUMENTITIES) {
 		if (i == 3999 && j == 3999) {
-			count++;
+			*count++;
 		}
 		if (i==j) {
 			FILL_VECTOR(d_accels[i][j],0,0,0);
@@ -53,7 +53,7 @@ void compute() {
 	dim3 threadsPerBlock(16,16);
 	dim3 numBlocks((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x, (NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y);
 
-	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
+	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass, count);
 	sum_columns<<<numBlocks,threadsPerBlock>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
 }

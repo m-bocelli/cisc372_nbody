@@ -4,11 +4,15 @@
 #include "config.h"
 #include <stdio.h>
 
-__global__ void compute_accels(vector3** d_accels, vector3* d_hVel, vector3* d_hPos, double* d_mass) {
+__global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass) {
 	int i, j, k;
+	printf("%d\n", blockDim.x);
 	i = blockIdx.x * blockDim.x + threadIdx.x;
 	j = blockIdx.y * blockDim.y + threadIdx.y;
 	if (i < NUMENTITIES && j < NUMENTITIES) {
+		if (i == 3999 && j == 3999) {
+			printf("hit max");
+		}
 		if (i==j) {
 			FILL_VECTOR(d_accels[i][j],0,0,0);
 		}
@@ -48,9 +52,9 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 //Side Effect: Modifies the hPos and hVel arrays with the new positions and accelerations after 1 INTERVAL
 void compute() {	
 	dim3 threadsPerBlock(16,16);
-	int numBlocks = (NUMENTITIES + threadsPerBlock.x - 1) / threadsPerBlock.x;
+	dim3 numBlocks((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x, (NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y);
 
-	compute_accels<<<numBlocks,256>>>(d_accels, d_hVel, d_hPos, d_mass);
-	sum_columns<<<numBlocks,256>>>(d_accels, d_hVel, d_hPos);
+	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
+	sum_columns<<<numBlocks,threadsPerBlock>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
 }

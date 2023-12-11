@@ -115,7 +115,7 @@ void printSystem(FILE* handle){
 }
 
 __global__ void init_accels(vector3** d_accels, vector3* d_values) {
-	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
 	if (i < NUMENTITIES)
 		d_accels[i]=&d_values[i*NUMENTITIES];
 }
@@ -141,19 +141,14 @@ int main(int argc, char **argv)
 	printSystem(handle);
 	#endif
 
-	dim3 threadsPerBlock(16,16);
-	int numBlocks = (NUMENTITIES + threadsPerBlock.x - 1) / threadsPerBlock.x;
-
-	init_accels<<<numBlocks,256>>>(d_accels, d_values);
+	init_accels<<<(NUMENTITIES + 256-1) / 256,256>>>(d_accels, d_values); // should launch a little over NUMENTITIES threads
 	cudaDeviceSynchronize();
 
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
-		cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
-		cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 	}
-
-
+	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
+	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
 
 	clock_t t1=clock()-t0;
 

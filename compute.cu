@@ -49,8 +49,8 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 void compute() {	
 	dim3 threadsPerBlock(16,16);
 	dim3 numBlocks(ceil((NUMENTITIES + threadsPerBlock.x-1) / threadsPerBlock.x), ceil((NUMENTITIES + threadsPerBlock.y-1) / threadsPerBlock.y));
-
-	compute_accels<<<numBlocks,256>>>(d_accels, d_hPos, d_mass);
-	sum_columns<<<numBlocks,256>>>(d_accels, d_hVel, d_hPos);
+	
+	compute_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_hPos, d_mass);
+	sum_columns<<<numBlocks,threadsPerBlock>>>(d_accels, d_hVel, d_hPos);
 	cudaDeviceSynchronize();
 }

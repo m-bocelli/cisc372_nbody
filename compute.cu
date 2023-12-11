@@ -4,7 +4,7 @@
 #include "config.h"
 #include <stdio.h>
 
-__global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass, int *count) {
+__global__ void compute_accels(vector3** d_accels, vector3* d_hPos, double* d_mass) {
 	int i, j, k;
 	i = blockIdx.x * blockDim.x + threadIdx.x;
 	j = blockIdx.y * blockDim.y + threadIdx.y;

@@ -10,6 +10,8 @@
 vector3 *hVel, *d_hVel;
 vector3 *hPos, *d_hPos;
 double *mass, *d_mass;
+vector3** d_accels;
+vector3* d_values;
 
 //initHostMemory: Create storage for numObjects entities in our system
 //Parameters: numObjects: number of objects to allocate
@@ -24,10 +26,14 @@ void initHostMemory(int numObjects)
 
 void initDeviceMemory(int numObjects)
 {
+	cudaMalloc(&d_values, sizeof(vector3)*NUMENTITIES*NUMENTITIES);
+	cudaMalloc(&d_accels, sizeof(vector3*)*NUMENTITIES);
 	cudaMalloc(&d_hVel, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_hPos, sizeof(vector3) * numObjects);
 	cudaMalloc(&d_mass, sizeof(double) * numObjects);
+}
 
+void copyToDevice(int numObjects) {
 	cudaMemcpy(d_hVel, hVel, sizeof(vector3) * numObjects, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_hPos, hPos, sizeof(vector3) * numObjects, cudaMemcpyHostToDevice);
 	cudaMemcpy(d_mass, mass, sizeof(double) * numObjects, cudaMemcpyHostToDevice);
@@ -42,6 +48,15 @@ void freeHostMemory()
 	free(hVel);
 	free(hPos);
 	free(mass);
+}
+
+void freeDeviceMemory()
+{
+	cudaFree(d_accels);
+	cudaFree(d_values);
+	cudaFree(d_hVel);
+	cudaFree(d_hPos);
+	cudaFree(d_mass);
 }
 
 //planetFill: Fill the first NUMPLANETS+1 entries of the entity arrays with an estimation
@@ -68,7 +83,7 @@ void planetFill(){
 //Side Effects: Fills count entries in our system starting at index start (0 based)
 void randomFill(int start, int count)
 {
-	int i, j, c = start;
+	int i, j = start;
 	for (i = start; i < start + count; i++)
 	{
 		for (j = 0; j < 3; j++)
@@ -91,12 +106,18 @@ void printSystem(FILE* handle){
 		for (j=0;j<3;j++){
 			fprintf(handle,"%lf,",hPos[i][j]);
 		}
-		printf("),v=(");
+		fprintf(handle,"),v=(");
 		for (j=0;j<3;j++){
 			fprintf(handle,"%lf,",hVel[i][j]);
 		}
 		fprintf(handle,"),m=%lf\n",mass[i]);
 	}
+}
+
+__global__ void init_accels(vector3** d_accels, vector3* d_values) {
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < NUMENTITIES)
+		d_accels[i]=&d_values[i*NUMENTITIES];
 }
 
 int main(int argc, char **argv)
@@ -105,24 +126,43 @@ int main(int argc, char **argv)
 	int t_now;
 	//srand(time(NULL));
 	srand(1234);
+
 	initHostMemory(NUMENTITIES);
+	initDeviceMemory(NUMENTITIES);
+	
 	planetFill();
 	randomFill(NUMPLANETS + 1, NUMASTEROIDS);
-	initDeviceMemory(NUMENTITIES);
+
+	copyToDevice(NUMENTITIES);
+	
 	//now we have a system.
 	#ifdef DEBUG
     FILE* handle;
     handle = fopen("parallel.txt", "w+");
 	printSystem(handle);
 	#endif
+
+	dim3 threadsPerBlock(16,16);
+	int numBlocks = (NUMENTITIES + threadsPerBlock.x - 1) / threadsPerBlock.x;
+
+	init_accels<<<numBlocks,threadsPerBlock>>>(d_accels, d_values);
+	cudaDeviceSynchronize();
+
 	for (t_now=0;t_now<DURATION;t_now+=INTERVAL){
 		compute();
 	}
+	
+	cudaMemcpy(hVel, d_hVel, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
+	cudaMemcpy(hPos, d_hPos, sizeof(vector3) * NUMENTITIES, cudaMemcpyDeviceToHost);
+
 	clock_t t1=clock()-t0;
-#ifdef DEBUG
+
+	#ifdef DEBUG
 	printSystem(handle);
-#endif
+	#endif
+
 	printf("This took a total time of %f seconds\n",(double)t1/CLOCKS_PER_SEC);
 
 	freeHostMemory();
+	freeDeviceMemory();
 }

@@ -32,8 +32,8 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 		vector3 accel_sum={0,0,0};
 		for (j=0;j<NUMENTITIES;j++){
 			accel_sum[0]+=d_accels[i][j][0];
-			accel_sum[0]+=d_accels[i][j][1];
-			accel_sum[0]+=d_accels[i][j][2];
+			accel_sum[1]+=d_accels[i][j][1];
+			accel_sum[2]+=d_accels[i][j][2];
 		}
 		//compute the new velocity based on the acceleration and time interval
 		//compute the new position based on the velocity and time interval

@@ -40,7 +40,7 @@ __global__ void sum_columns(vector3** d_accels, vector3* d_hVel, vector3* d_hPos
 		d_hVel[i][0]+=accel_sum[0]*INTERVAL;
 		d_hVel[i][1]+=accel_sum[1]*INTERVAL;
 		d_hVel[i][2]+=accel_sum[2]*INTERVAL;
-
+		__syncthreads();
 		d_hPos[i][0]+=d_hVel[i][0]*INTERVAL;
 		d_hPos[i][1]+=d_hVel[i][1]*INTERVAL;
 		d_hPos[i][2]+=d_hVel[i][2]*INTERVAL;
